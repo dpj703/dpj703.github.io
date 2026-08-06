@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Life Decisions Simulator</title>
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js via CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    @keyframes pulse-slow {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    .running-glow {
+      animation: pulse-slow 1.5s infinite;
+    }
+  </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen font-sans flex flex-col">
+
+  <!-- Header -->
+  <header class="border-b border-slate-800 bg-slate-950/50 backdrop-blur px-6 py-4 flex flex-wrap justify-between items-center gap-4">
+    <div>
+      <h1 class="text-2xl font-bold tracking-tight text-emerald-400">Life Decisions Simulator</h1>
+      <p class="text-xs text-slate-400">Projected 30-Year Financial & Well-being Engine</p>
+    </div>
+    
+    <!-- Pro Tip: Demo Presets -->
+    <div class="flex items-center gap-2">
+      <span class="text-xs text-slate-400 font-medium">Quick Presets:</span>
+      <button onclick="loadPreset('tech')" class="px-3 py-1 text-xs bg-slate-800 hover:bg-slate-700 text-emerald-300 rounded border border-slate-700 transition">🚀 Tech Bro</button>
+      <button onclick="loadPreset('frugal')" class="px-3 py-1 text-xs bg-slate-800 hover:bg-slate-700 text-blue-300 rounded border border-slate-700 transition">🌱 FIRE Saver</button>
+      <button onclick="loadPreset('artist')" class="px-3 py-1 text-xs bg-slate-800 hover:bg-slate-700 text-purple-300 rounded border border-slate-700 transition">🎨 Free Spirit</button>
+    </div>
+  </header>
+
+  <!-- Main Grid -->
+  <main class="flex-1 p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 max-w-7xl mx-auto w-full">
+
+    <!-- Left Controls Panel (4 Cols) -->
+    <section class="lg:col-span-4 bg-slate-950/40 border border-slate-800 rounded-xl p-5 flex flex-col gap-4">
+      <h2 class="text-lg font-semibold text-slate-200 border-b border-slate-800 pb-2">1. Your Setup</h2>
+
+      <!-- College -->
+      <div>
+        <label class="block text-xs font-semibold text-slate-400 mb-1">Education & Debt</label>
+        <select id="college" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500">
+          <option value="state">State University (-$30,000 Debt)</option>
+          <option value="private">Private Elite (-$120,000 Debt)</option>
+          <option value="bootcamp">Coding Bootcamp (-$10,000 Debt)</option>
+          <option value="none">Self-Taught / Trades ($0 Debt)</option>
+        </select>
+      </div>
+
+      <!-- Job -->
+      <div>
+        <label class="block text-xs font-semibold text-slate-400 mb-1">Career Path</label>
+        <select id="job" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500">
+          <option value="tech">Software Engineer ($90,000 start, high growth)</option>
+          <option value="finance">Finance / Consulting ($85,000 start, high promo)</option>
+          <option value="teacher">Educator ($48,000 start, stable)</option>
+          <option value="creative">Freelance Creative ($40,000 start, variable)</option>
+        </select>
+      </div>
+
+      <!-- Apartment -->
+      <div>
+        <label class="block text-xs font-semibold text-slate-400 mb-1">Housing Choice</label>
+        <select id="housing" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500">
+          <option value="roommates">Shared Apartment w/ Roommates ($900/mo)</option>
+          <option value="solo">1-Bedroom Studio ($1,800/mo)</option>
+          <option value="luxury">Downtown Luxury Condo ($3,200/mo)</option>
+        </select>
+      </div>
+
+      <!-- Car -->
+      <div>
+        <label class="block text-xs font-semibold text-slate-400 mb-1">Vehicle</label>
+        <select id="car" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500">
+          <option value="transit">Public Transit / Bike ($100/mo)</option>
+          <option value="used">Reliable Used Sedan ($350/mo)</option>
+          <option value="electric">New EV Lease ($750/mo)</option>
+        </select>
+      </div>
+
+      <!-- Savings Strategy -->
+      <div>
+        <label class="block text-xs font-semibold text-slate-400 mb-1">Savings Strategy (% salary invested)</label>
+        <select id="savings" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500">
+          <option value="aggressive">Aggressive Investor (40% into Stock Index)</option>
+          <option value="moderate">Moderate Saver (20% into Index Funds)</option>
+          <option value="cash">Conservative (10% into Low-Yield Cash)</option>
+          <option value="yolo">YOLO Spender (2% Savings)</option>
+        </select>
+      </div>
+
+      <!-- Run Controls -->
+      <div class="mt-auto pt-4 border-t border-slate-800 flex flex-col gap-2">
+        <button id="runBtn" onclick="runSimulation()" class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold rounded-lg transition shadow-lg shadow-emerald-950">
+          ▶ Run 30-Year Simulation
+        </button>
+        <button id="resetBtn" onclick="resetSim()" class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs rounded transition">
+          Reset
+        </button>
+      </div>
+    </section>
+
+    <!-- Right Dashboard Panel (8 Cols) -->
+    <section class="lg:col-span-8 flex flex-col gap-6">
+
+      <!-- Top KPI Bar -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div class="bg-slate-950/40 border border-slate-800 p-4 rounded-xl text-center">
+          <div class="text-xs text-slate-400 uppercase font-bold tracking-wider">Year</div>
+          <div id="kpiYear" class="text-2xl font-black text-slate-100 mt-1">0 / 30</div>
+        </div>
+        <div class="bg-slate-950/40 border border-slate-800 p-4 rounded-xl text-center">
+          <div class="text-xs text-slate-400 uppercase font-bold tracking-wider">Net Worth</div>
+          <div id="kpiNetWorth" class="text-2xl font-black text-emerald-400 mt-1">$0</div>
+        </div>
+        <div class="bg-slate-950/40 border border-slate-800 p-4 rounded-xl text-center">
+          <div class="text-xs text-slate-400 uppercase font-bold tracking-wider">Remaining Debt</div>
+          <div id="kpiDebt" class="text-2xl font-black text-rose-400 mt-1">$0</div>
+        </div>
+        <div class="bg-slate-950/40 border border-slate-800 p-4 rounded-xl text-center">
+          <div class="text-xs text-slate-400 uppercase font-bold tracking-wider">Happiness Index</div>
+          <div id="kpiHappiness" class="text-2xl font-black text-amber-400 mt-1">100%</div>
+        </div>
+      </div>
+
+      <!-- Primary Chart -->
+      <div class="bg-slate-950/40 border border-slate-800 p-5 rounded-xl flex-1 flex flex-col">
+        <h3 class="text-sm font-semibold text-slate-300 mb-4">30-Year Trajectory (Net Worth & Assets)</h3>
+        <div class="relative flex-1 min-h-[260px]">
+          <canvas id="lifeChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Live Event Feed -->
+      <div class="bg-slate-950/40 border border-slate-800 p-4 rounded-xl">
+        <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Simulation Log & Life Events</h3>
+        <div id="eventLog" class="h-32 overflow-y-auto space-y-2 pr-2 text-xs text-slate-300 scrollbar-thin scrollbar-thumb-slate-700">
+          <div class="text-slate-500 italic">Configure choices and hit Run to simulate...</div>
+        </div>
+      </div>
+
+    </section>
+  </main>
+
+  <!-- Simulation Logic & Script -->
+  <script>
+    let chartInstance = null;
+    let simInterval = null;
+
+    // Preset configurations
+    function loadPreset(type) {
+      if (type === 'tech') {
+        document.getElementById('college').value = 'bootcamp';
+        document.getElementById('job').value = 'tech';
+        document.getElementById('housing').value = 'solo';
+        document.getElementById('car').value = 'electric';
+        document.getElementById('savings').value = 'aggressive';
+      } else if (type === 'frugal') {
+        document.getElementById('college').value = 'state';
+        document.getElementById('job').value = 'finance';
+        document.getElementById('housing').value = 'roommates';
+        document.getElementById('car').value = 'transit';
+        document.getElementById('savings').value = 'aggressive';
+      } else if (type === 'artist') {
+        document.getElementById('college').value = 'private';
+        document.getElementById('job').value = 'creative';
+        document.getElementById('housing').value = 'roommates';
+        document.getElementById('car').value = 'used';
+        document.getElementById('savings').value = 'yolo';
+      }
+    }
+
+    // Chart initialization
+    function initChart() {
+      const ctx = document.getElementById('lifeChart').getContext('2d');
+      chartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: [],
+          datasets: [
+            {
+              label: 'Net Worth ($)',
+              data: [],
+              borderColor: '#34d399',
+              backgroundColor: 'rgba(52, 211, 153, 0.1)',
+              fill: true,
+              tension: 0.3
+            },
+            {
+              label: 'Investments ($)',
+              data: [],
+              borderColor: '#60a5fa',
+              borderDash: [5, 5],
+              tension: 0.3
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { labels: { color: '#94a3b8' } }
+          },
+          scales: {
+            x: { ticks: { color: '#64748b' }, grid: { color: '#1e293b' } },
+            y: { ticks: { color: '#64748b' }, grid: { color: '#1e293b' } }
+          }
+        }
+      });
+    }
+
+    // Main Engine execution
+    function runSimulation() {
+      clearInterval(simInterval);
+      
+      // Configuration Mapping
+      const collegeOptions = { state: 30000, private: 120000, bootcamp: 10000, none: 0 };
+      const jobOptions = { tech: { salary: 90000, growth: 0.06 }, finance: { salary: 85000, growth: 0.07 }, teacher: { salary: 48000, growth: 0.03 }, creative: { salary: 40000, growth: 0.04 } };
+      const housingOptions = { roommates: 10800, solo: 21600, luxury: 38400 };
+      const carOptions = { transit: 1200, used: 4200, electric: 9000 };
+      const savingsOptions = { aggressive: 0.40, moderate: 0.20, cash: 0.10, yolo: 0.02 };
+
+      // Initial State
+      let debt = collegeOptions[document.getElementById('college').value];
+      let salary = jobOptions[document.getElementById('job').value].salary;
+      const salaryGrowth = jobOptions[document.getElementById('job').value].growth;
+      const annualHousing = housingOptions[document.getElementById('housing').value];
+      const annualCar = carOptions[document.getElementById('car').value];
+      const savingsRate = savingsOptions[document.getElementById('savings').value];
+
+      let investments = 0;
+      let cash = 5000;
+      let happiness = 100;
+      let year = 0;
+
+      // Clear Outputs
+      document.getElementById('eventLog').innerHTML = '';
+      chartInstance.data.labels = [];
+      chartInstance.data.datasets[0].data = [];
+      chartInstance.data.datasets[1].data = [];
+      chartInstance.update();
+
+      const runBtn = document.getElementById('runBtn');
+      runBtn.innerText = "Simulating...";
+      runBtn.disabled = true;
+
+      // 30-Year Loop (150ms step interval for dynamic visuals)
+      simInterval = setInterval(() => {
+        year++;
+
+        // 1. Base Financials
+        salary *= (1 + salaryGrowth); // Annual Raise
+        const totalExpenses = annualHousing + annualCar;
+        const savedAmount = salary * savingsRate;
+        const disposableIncome = salary - totalExpenses - savedAmount;
+
+        // Debt Servicing (10% paid per year)
+        if (debt > 0) {
+          const debtPayment = Math.min(debt, debt * 0.10 + 2000);
+          debt -= debtPayment;
+        }
+
+        // Investment Growth (8% average stock market yield, cash low yield)
+        const yieldRate = (document.getElementById('savings').value === 'cash') ? 0.02 : 0.08;
+        investments = (investments + savedAmount) * (1 + yieldRate);
+
+        // 2. Random Life Events
+        let eventText = null;
+        const roll = Math.random();
+
+        if (roll < 0.08) { // Market Crash
+          const lossPercent = 0.25;
+          investments *= (1 - lossPercent);
+          happiness -= 10;
+          eventText = `🚨 <b class="text-rose-400">Market Crash!</b> Portfolio dropped 25%.`;
+        } else if (roll < 0.16) { // Promotion
+          salary *= 1.15;
+          happiness += 8;
+          eventText = `🎉 <b class="text-emerald-400">Promotion Earned!</b> Salary increased 15%.`;
+        } else if (roll < 0.22) { // Medical Bill
+          const bill = 6000;
+          if (investments >= bill) investments -= bill; else debt += bill;
+          happiness -= 12;
+          eventText = `🏥 <b class="text-amber-400">Medical Emergency!</b> Unplanned $6,000 bill.`;
+        } else if (roll < 0.28) { // Inflation Surge
+          salary *= 0.96; // Effective purchasing power dip
+          happiness -= 5;
+          eventText = `📈 <b class="text-amber-400">Inflation Surge!</b> Purchasing power tightened.`;
+        }
+
+        // Happiness Adjustments
+        if (disposableIncome < 0) happiness -= 5;
+        if (debt === 0 && year > 1) happiness += 0.5;
+        happiness = Math.max(10, Math.min(100, happiness)); // Clamp 10-100
+
+        const netWorth = Math.round(investments + cash - debt);
+
+        // 3. Update UI Elements
+        document.getElementById('kpiYear').innerText = `${year} / 30`;
+        document.getElementById('kpiNetWorth').innerText = `$${netWorth.toLocaleString()}`;
+        document.getElementById('kpiDebt').innerText = `$${Math.round(debt).toLocaleString()}`;
+        document.getElementById('kpiHappiness').innerText = `${Math.round(happiness)}%`;
+
+        // Chart Updates
+        chartInstance.data.labels.push(`Y${year}`);
+        chartInstance.data.datasets[0].data.push(netWorth);
+        chartInstance.data.datasets[1].data.push(Math.round(investments));
+        chartInstance.update();
+
+        // Log Update
+        const log = document.getElementById('eventLog');
+        const entry = document.createElement('div');
+        entry.className = "pb-1 border-b border-slate-900";
+        entry.innerHTML = `<span class="text-slate-500 font-mono">Year ${year}:</span> Salary: $${Math.round(salary).toLocaleString()} ${eventText ? ' — ' + eventText : ''}`;
+        log.prepend(entry);
+
+        // End Condition
+        if (year >= 30) {
+          clearInterval(simInterval);
+          runBtn.innerText = "▶ Run 30-Year Simulation";
+          runBtn.disabled = false;
+        }
+      }, 150);
+    }
+
+    function resetSim() {
+      clearInterval(simInterval);
+      document.getElementById('kpiYear').innerText = "0 / 30";
+      document.getElementById('kpiNetWorth').innerText = "$0";
+      document.getElementById('kpiDebt').innerText = "$0";
+      document.getElementById('kpiHappiness').innerText = "100%";
+      document.getElementById('eventLog').innerHTML = '<div class="text-slate-500 italic">Configure choices and hit Run to simulate...</div>';
+      if (chartInstance) {
+        chartInstance.data.labels = [];
+        chartInstance.data.datasets[0].data = [];
+        chartInstance.data.datasets[1].data = [];
+        chartInstance.update();
+      }
+      const runBtn = document.getElementById('runBtn');
+      runBtn.innerText = "▶ Run 30-Year Simulation";
+      runBtn.disabled = false;
+    }
+
+    // Initialize chart on load
+    window.onload = initChart;
+  </script>
+</body>
+</html>
