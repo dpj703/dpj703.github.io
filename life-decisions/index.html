@@ -23,7 +23,7 @@
   <!-- Header -->
   <header class="border-b border-slate-800 bg-slate-950/50 backdrop-blur px-6 py-4 flex flex-wrap justify-between items-center gap-4">
     <div>
-      <h1 class="text-2xl font-bold tracking-tight text-emerald-400">Life Decisions Simulator</h1>
+      <h1 class="text-2xl font-bold tracking-tight text-emerald-400">FinQuest</h1>
       <p class="text-xs text-slate-400">Projected 30-Year Financial & Well-being Engine</p>
     </div>
     
@@ -41,7 +41,7 @@
 
     <!-- Left Controls Panel (4 Cols) -->
     <section class="lg:col-span-4 bg-slate-950/40 border border-slate-800 rounded-xl p-5 flex flex-col gap-4">
-      <h2 class="text-lg font-semibold text-slate-200 border-b border-slate-800 pb-2">1. Your Setup</h2>
+      <h2 class="text-lg font-semibold text-slate-200 border-b border-slate-800 pb-2">Your Decisions</h2>
 
       <!-- College -->
       <div>
@@ -92,7 +92,7 @@
           <option value="aggressive">Aggressive Investor (40% into Stock Index)</option>
           <option value="moderate">Moderate Saver (20% into Index Funds)</option>
           <option value="cash">Conservative (10% into Low-Yield Cash)</option>
-          <option value="yolo">YOLO Spender (2% Savings)</option>
+          <option value="spender">High Spender (2% Savings)</option>
         </select>
       </div>
 
@@ -173,7 +173,7 @@
         document.getElementById('job').value = 'creative';
         document.getElementById('housing').value = 'roommates';
         document.getElementById('car').value = 'used';
-        document.getElementById('savings').value = 'yolo';
+        document.getElementById('savings').value = 'spender';
       }
     }
 
@@ -225,7 +225,7 @@
       const jobOptions = { tech: { salary: 90000, growth: 0.06 }, finance: { salary: 85000, growth: 0.07 }, teacher: { salary: 48000, growth: 0.03 }, creative: { salary: 40000, growth: 0.04 } };
       const housingOptions = { roommates: 10800, solo: 21600, luxury: 38400 };
       const carOptions = { transit: 1200, used: 4200, electric: 9000 };
-      const savingsOptions = { aggressive: 0.40, moderate: 0.20, cash: 0.10, yolo: 0.02 };
+      const savingsOptions = { aggressive: 0.40, moderate: 0.20, cash: 0.10, spender: 0.02 };
 
       // Initial State
       let debt = collegeOptions[document.getElementById('college').value];
