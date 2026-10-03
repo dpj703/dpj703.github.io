@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ProcrastiNOT</title>
+<style>
+:root{--bg:#f6f7fb;--card:#fff;--text:#1c2030;--mute:#667;--line:#e2e5ee;--acc:#4f46e5;--hi:#e5484d;--mid:#f5a524;--lo:#30a46c;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12141c;--card:#1b1e29;--text:#eceef5;--mute:#98a;--line:#2b2f3e;--acc:#818cf8}}
+:root[data-theme="dark"]{--bg:#12141c;--card:#1b1e29;--text:#eceef5;--mute:#98a;--line:#2b2f3e;--acc:#818cf8}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:860px;margin:0 auto;padding:20px 16px 48px}
+h1{margin:0 0 4px;font-size:26px}h2{font-size:17px;margin:0 0 12px}
+.sub{color:var(--mute);margin:0 0 20px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:16px}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:end}
+label{display:flex;flex-direction:column;font-size:12px;color:var(--mute);gap:3px;flex:1;min-width:110px}
+input,select{font:inherit;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--text)}
+button{font:inherit;padding:9px 14px;border:0;border-radius:8px;background:var(--acc);color:#fff;cursor:pointer}
+button.ghost{background:transparent;color:var(--acc);border:1px solid var(--line)}
+button.ed{background:transparent;color:var(--acc);padding:2px 8px;border:1px solid var(--line)}
+button.x{background:transparent;color:var(--mute);padding:2px 8px}
+.task{display:flex;gap:12px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
+.task:first-child{border-top:0}
+.badge{min-width:64px;text-align:center;padding:3px 8px;border-radius:99px;color:#fff;font-size:12px;font-weight:600}
+.hi{background:var(--hi)}.mid{background:var(--mid)}.lo{background:var(--lo)}
+[hidden]{display:none!important}.tag{font-size:12px;margin-right:4px}.grow{flex:1}.meta{font-size:12px;color:var(--mute)}
+.days{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.day{border:1px solid var(--line);border-radius:10px;padding:10px;background:var(--bg)}
+.day b{display:block;margin-bottom:6px}
+.chunk{font-size:13px;padding:4px 6px;margin-top:4px;border-radius:6px;background:var(--card);border-left:3px solid var(--acc)}
+.warn{color:var(--hi);font-size:13px;margin-top:8px}
+.empty{color:var(--mute);font-size:13px}
+</style>
+</head>
+<body>
+<main>
+<h1>📚 ProcrastiNOT</h1>
+<p class="sub">Everything due at once? Add your assignments and get a ranked list and a day-by-day plan.</p>
+
+<div class="card">
+  <h2 id="formTitle">Add a task</h2>
+  <div class="row">
+    <label>Type<select id="type"><option value="assignment"> Assignment</option><option value="test"> Test / contest (AMC, BMT…)</option><option value="activity"> Activity / club</option></select></label>
+    <label>Name<input id="name" placeholder="Lab report"></label>
+    <label id="courseLbl">Course<input id="course" placeholder="Biology"></label>
+    <label>Due date<input id="due" type="date"></label>
+    <label id="effortLbl">Effort (hours)<input id="effort" type="number" min="0.5" step="0.5" value="2"></label>
+    <label id="weightWrap">Grade weight (%)<input id="weight" type="number" min="1" max="100" value="10"></label>
+    <label id="impWrap" hidden>Importance<select id="imp"><option value="low">Low</option><option value="med" selected>Medium</option><option value="high">High</option><option value="must">Must-do</option></select></label>
+    <button id="add">Add</button>
+    <button class="ghost" id="cancel" hidden>Cancel edit</button>
+  </div>
+  <div class="row" style="margin-top:12px">
+    <label style="max-width:200px">Study hours available per day<input id="cap" type="number" min="1" max="12" step="0.5" value="3"></label>
+    <label style="max-width:160px">Plan length (days)<input id="n" type="number" min="1" max="60" value="7"></label>
+    <button class="ghost" id="sample">Load sample week</button>
+    <button class="ghost" id="clear">Clear all</button>
+  </div>
+  <div class="row" style="margin-top:12px">
+    <button class="ghost" id="export">⬇ Export to file</button>
+    <button class="ghost" id="import">⬆ Import from file</button>
+    <input id="file" type="file" accept=".json,application/json" hidden>
+    <span class="meta" id="status" role="status"></span>
+  </div>
+</div>
+
+<div class="card"><h2>Priority ranking</h2><div id="list"></div></div>
+<div class="card"><h2 id="planTitle">Your 7-day plan</h2><div id="plan"></div></div>
+<p class="meta">Your assignments are saved automatically in this browser only. Use Export/Import to back them up or move them to another device.</p>
+<p class="meta">Priority score = (grade weight + effort × 3) ÷ (days left + 1). Tests and activities have no grade, so their importance stands in for the weight (Low 5, Medium 12, High 20, Must-do 30). For tests and contests, prep is planned before the day itself. Plan fills each day with the earliest-due work first and warns you when something can't fit before its deadline.</p>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+let tasks=[];
+const TYPES={assignment:{icon:'📝',label:'Assignment'},test:{icon:'🏆',label:'Test / contest'},activity:{icon:'🎯',label:'Activity'}};
+const IMP={low:5,med:12,high:20,must:30},IMPL={low:'Low',med:'Medium',high:'High',must:'Must-do'};
+const today=()=>{const d=new Date();d.setHours(0,0,0,0);return d};
+const parse=s=>{const [y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d)};
+const iso=d=>{const z=n=>String(n).padStart(2,'0');return d.getFullYear()+'-'+z(d.getMonth()+1)+'-'+z(d.getDate())};
+const daysLeft=t=>Math.round((parse(t.due)-today())/864e5);
+const score=t=>(t.weight+t.effort*3)/(Math.max(daysLeft(t),0)+1);
+const esc=s=>s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+const elig=(t,i)=>(t.type==='test')?i<=Math.max(daysLeft(t)-1,0):i<=daysLeft(t);
+function render(){
+  persist();
+  const ranked=[...tasks].sort((a,b)=>score(b)-score(a));
+  const max=ranked.length?score(ranked[0]):1;
+  $('list').innerHTML=ranked.length?ranked.map(t=>{
+    const r=score(t)/max,lvl=r>.66?'hi':r>.33?'mid':'lo',lab=r>.66?'Do first':r>.33?'Soon':'Later';
+    const dl=daysLeft(t);const ty=TYPES[t.type||'assignment'];
+    const when=dl<0?'overdue':dl===0?'due today':dl===1?'due tomorrow':'due in '+dl+' days';
+    return `<div class="task"><span class="badge ${lvl}">${lab}</span><div class="grow"><b><span class="tag">${ty.icon}</span>${esc(t.name)}</b><div class="meta">${esc(t.course||ty.label)} · ${when} · ${t.effort}h${(t.type||'assignment')==='assignment'?' · '+t.weight+'% of grade':' · '+IMPL[t.imp||'med']+' importance'}</div></div><button class="ed" onclick="edit(${t.id})">Edit</button><button class="x" onclick="del(${t.id})" aria-label="Remove">✕</button></div>`;
+  }).join(''):'<div class="empty">No assignments yet. Add one or load the sample week.</div>';
+
+  const cap=+$('cap').value||3,rem={};tasks.forEach(t=>rem[t.id]=t.effort);
+  const days=[];
+  const N=Math.min(60,Math.max(1,Math.round(+$('n').value)||7));
+  $('planTitle').textContent='Your '+N+'-day plan';
+  for(let i=0;i<N;i++){
+    let left=cap;const chunks=[];
+    const order=[...tasks].filter(t=>rem[t.id]>0&&elig(t,i)).sort((a,b)=>daysLeft(a)-daysLeft(b)||b.weight-a.weight);
+    for(const t of order){if(left<=0)break;const h=Math.min(rem[t.id],left);rem[t.id]-=h;left-=h;chunks.push([t,h])}
+    days.push(chunks);
+  }
+  const names=['Today','Tomorrow'];
+  $('plan').innerHTML=tasks.length?`<div class="days">${days.map((c,i)=>{
+    const d=new Date(today());d.setDate(d.getDate()+i);
+    const label=(names[i]||d.toLocaleDateString(undefined,i<7?{weekday:'long'}:{weekday:'short',month:'short',day:'numeric'}));
+    return `<div class="day"><b>${label}</b>${c.length?c.map(([t,h])=>`<div class="chunk">${h}h · ${esc(t.name)}</div>`).join(''):'<div class="empty">Free day 🎉</div>'}</div>`}).join('')}</div>`
+    +(tasks.filter(t=>rem[t.id]>0&&daysLeft(t)<N).map(t=>`<div class="warn">⚠️ ${esc(t.name)}: ${rem[t.id]}h won't fit before it's due. Add study hours or ask for an extension.</div>`).join('')):'<div class="empty">Your plan will appear here.</div>';
+}
+const KEY='assignment-triage-v1';
+function persist(){try{localStorage.setItem(KEY,JSON.stringify({tasks,cap:$('cap').value,n:$('n').value}))}catch(e){}}
+function restore(){try{const r=localStorage.getItem(KEY);if(!r)return;const d=JSON.parse(r);if(Array.isArray(d.tasks))tasks=d.tasks;if(d.cap)$('cap').value=d.cap;if(d.n)$('n').value=d.n}catch(e){}}
+function say(m){$('status').textContent=m;setTimeout(()=>{if($('status').textContent===m)$('status').textContent=''},4000)}
+function clean(t){
+  if(!t||typeof t.name!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(t.due||''))return null;
+  const e=+t.effort,w=+t.weight;if(!(e>0)||!(w>0))return null;
+  const type=TYPES[t.type]?t.type:'assignment',imp=IMP[t.imp]?t.imp:'med';
+  return{id:Date.now()+Math.random(),type,imp,name:t.name.slice(0,120),course:String(t.course||'').slice(0,60),due:t.due,effort:e,weight:w};
+}
+const dlReady=(window.claude&&claude.use)?claude.use('downloads').catch(()=>null):Promise.resolve(null);
+$('export').onclick=async()=>{
+  if(!tasks.length){say('Nothing to export yet.');return}
+  const name='assignment-triage-'+iso(today())+'.json';
+  const text=JSON.stringify({app:'assignment-triage',version:1,cap:+$('cap').value||3,n:+$('n').value||7,tasks},null,2);
+  const host=await dlReady;
+  try{
+    if(host){await host.save({filename:name,data:text})}
+    else{
+      const url=URL.createObjectURL(new Blob([text],{type:'application/json'}));
+      const a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();
+      setTimeout(()=>URL.revokeObjectURL(url),1000);
+    }
+    say('Exported.');
+  }catch(e){if(!e||e.code!=='declined')say('Export failed. Try again.')}
+};
+$('import').onclick=()=>$('file').click();
+$('file').onchange=ev=>{
+  const f=ev.target.files[0];ev.target.value='';if(!f)return;
+  const r=new FileReader();
+  r.onload=()=>{
+    try{
+      const d=JSON.parse(r.result),list=(Array.isArray(d)?d:d.tasks);
+      if(!Array.isArray(list))throw 0;
+      const ok=list.map(clean).filter(Boolean);
+      if(!ok.length){say('No valid assignments found in that file.');return}
+      if(tasks.length&&!confirm('Replace your current '+tasks.length+' assignments with '+ok.length+' from the file? (Cancel keeps current ones and adds the new ones.)'))tasks=tasks.concat(ok);else tasks=ok;
+      if(d.cap)$('cap').value=d.cap;if(d.n)$('n').value=d.n;
+      render();say('Imported '+ok.length+' assignment'+(ok.length>1?'s':'')+'.');
+    }catch(e){say('That file could not be read.')}
+  };
+  r.readAsText(f);
+};
+function del(id){if(editing===id)resetForm();tasks=tasks.filter(t=>t.id!==id);render()}
+let editing=null;
+function syncType(){
+  const ty=$('type').value,g=ty==='assignment';
+  $('weightWrap').hidden=!g;$('impWrap').hidden=g;
+  $('courseLbl').firstChild.textContent=g?'Course':'Club / subject';
+  $('effortLbl').firstChild.textContent=ty==='test'?'Prep (hours)':ty==='activity'?'Time needed (hours)':'Effort (hours)';
+}
+function resetForm(){
+  editing=null;$('name').value='';$('course').value='';$('type').value='assignment';$('effort').value=2;$('weight').value=10;$('imp').value='med';
+  $('add').textContent='Add';$('cancel').hidden=true;$('formTitle').textContent='Add a task';syncType();
+}
+$('type').onchange=syncType;
+$('cancel').onclick=resetForm;
+$('add').onclick=()=>{
+  const name=$('name').value.trim(),due=$('due').value;
+  if(!name||!due){alert('Add a name and a due date.');return}
+  const type=$('type').value,imp=$('imp').value;
+  const t={id:editing||Date.now()+Math.random(),type,name,course:$('course').value.trim(),due,effort:+$('effort').value||1,
+    imp,weight:type==='assignment'?(+$('weight').value||1):IMP[imp]};
+  if(editing)tasks=tasks.map(x=>x.id===editing?t:x);else tasks.push(t);
+  resetForm();$('due').value='';render();
+};
+function edit(id){
+  const t=tasks.find(x=>x.id===id);if(!t)return;
+  editing=id;$('type').value=t.type||'assignment';syncType();
+  $('name').value=t.name;$('course').value=t.course||'';$('due').value=t.due;$('effort').value=t.effort;
+  if((t.type||'assignment')==='assignment')$('weight').value=t.weight;else $('imp').value=t.imp||'med';
+  $('add').textContent='Save changes';$('cancel').hidden=false;$('formTitle').textContent='Edit task';
+  $('add').scrollIntoView({behavior:'smooth',block:'center'});$('name').focus();
+}
+$('sample').onclick=()=>{
+  const mk=(n,c,d,e,w,type='assignment',imp='med')=>{const x=new Date(today());x.setDate(x.getDate()+d);return{id:Math.random(),type,imp,name:n,course:c,due:iso(x),effort:e,weight:type==='assignment'?w:IMP[imp]}};
+  tasks=[mk('Chem lab report','Chemistry',2,4,15),mk('History essay draft','History',4,6,20),mk('Math problem set 7','Math',1,2,5),mk('Spanish vocab quiz','Spanish',3,1.5,5),mk('Biology final project','Biology',6,8,30),mk('AMC 10 contest','Math Club',5,6,0,'test','high'),mk('Robotics team meeting','Robotics',2,1.5,0,'activity','med')];
+  render();
+};
+$('clear').onclick=()=>{tasks=[];render()};
+$('cap').oninput=render;$('n').oninput=render;
+restore();
+syncType();
+render();
+</script>
+</body>
+</html>
