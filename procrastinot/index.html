@@ -113,7 +113,7 @@ function render(){
     return `<div class="day"><b>${label}</b>${c.length?c.map(([t,h])=>`<div class="chunk">${h}h · ${esc(t.name)}</div>`).join(''):'<div class="empty">Free day 🎉</div>'}</div>`}).join('')}</div>`
     +(tasks.filter(t=>rem[t.id]>0&&daysLeft(t)<N).map(t=>`<div class="warn">⚠️ ${esc(t.name)}: ${rem[t.id]}h won't fit before it's due. Add study hours or ask for an extension.</div>`).join('')):'<div class="empty">Your plan will appear here.</div>';
 }
-const KEY='assignment-triage-v1';
+const KEY='procrastinot-v1';
 function persist(){try{localStorage.setItem(KEY,JSON.stringify({tasks,cap:$('cap').value,n:$('n').value}))}catch(e){}}
 function restore(){try{const r=localStorage.getItem(KEY);if(!r)return;const d=JSON.parse(r);if(Array.isArray(d.tasks))tasks=d.tasks;if(d.cap)$('cap').value=d.cap;if(d.n)$('n').value=d.n}catch(e){}}
 function say(m){$('status').textContent=m;setTimeout(()=>{if($('status').textContent===m)$('status').textContent=''},4000)}
@@ -123,11 +123,11 @@ function clean(t){
   const type=TYPES[t.type]?t.type:'assignment',imp=IMP[t.imp]?t.imp:'med';
   return{id:Date.now()+Math.random(),type,imp,name:t.name.slice(0,120),course:String(t.course||'').slice(0,60),due:t.due,effort:e,weight:w};
 }
-const dlReady=(window.claude&&claude.use)?claude.use('downloads').catch(()=>null):Promise.resolve(null);
+const dlReady=Promise.resolve(null);
 $('export').onclick=async()=>{
   if(!tasks.length){say('Nothing to export yet.');return}
-  const name='assignment-triage-'+iso(today())+'.json';
-  const text=JSON.stringify({app:'assignment-triage',version:1,cap:+$('cap').value||3,n:+$('n').value||7,tasks},null,2);
+  const name='procrastinot-'+iso(today())+'.json';
+  const text=JSON.stringify({app:'procrastinot',version:1,cap:+$('cap').value||3,n:+$('n').value||7,tasks},null,2);
   const host=await dlReady;
   try{
     if(host){await host.save({filename:name,data:text})}
